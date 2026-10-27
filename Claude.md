@@ -1,5 +1,9 @@
 # Westcoast Education – Claude Code Instructions
 
+## Start of every session
+
+Read `PROJECT_CONTEXT.md` first. It describes the current architecture, decisions, test results, status and Git state. Keep it updated when the project changes.
+
 ## Project context
 
 This is an educational C#/.NET assignment to build a cross-platform desktop application using Avalonia UI.
