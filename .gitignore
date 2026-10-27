@@ -1,0 +1,12 @@
+# Build output
+bin/
+obj/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+
+# Local configuration with the real RestDB API key - never commit
+appsettings.json
