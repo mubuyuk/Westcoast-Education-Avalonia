@@ -1,9 +1,27 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Threading.Tasks;
 
 namespace WestcoastEducation.Desktop.ViewModels;
 
-public partial class MainViewModel : ViewModelBase
+// Huvudfönstrets ViewModel. Den håller en ViewModel per flik, som skickas in via Dependency Injection.
+public class MainViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    public partial string Greeting { get; set; } = "Welcome to Avalonia!";
+    public MainViewModel(CoursesViewModel courses, StudentsViewModel students, TeachersViewModel teachers)
+    {
+        Courses = courses;
+        Students = students;
+        Teachers = teachers;
+    }
+
+    public CoursesViewModel Courses { get; }
+    public StudentsViewModel Students { get; }
+    public TeachersViewModel Teachers { get; }
+
+    // Hämtar all data från RestDB när applikationen startar.
+    public async Task LoadAllAsync()
+    {
+        await Task.WhenAll(
+            Courses.LoadCoursesAsync(),
+            Students.LoadStudentsAsync(),
+            Teachers.LoadTeachersAsync());
+    }
 }

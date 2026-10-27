@@ -1,22 +1,33 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:WestcoastEducation.Desktop.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:views="using:WestcoastEducation.Desktop.Views"
         x:Class="WestcoastEducation.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="WestcoastEducation.Desktop">
+        Title="Westcoast Education - Administration"
+        Width="1100" Height="720"
+        WindowStartupLocation="CenterScreen">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
-    </Design.DataContext>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{DynamicResource PrimaryBrush}" Padding="20,14">
+            <TextBlock Text="Westcoast Education - Administration"
+                       FontSize="22" FontWeight="SemiBold"
+                       Foreground="{DynamicResource OnPrimaryBrush}" />
+        </Border>
 
-    <TextBox Text="{Binding Greeting}"
-             HorizontalAlignment="Center"
-             VerticalAlignment="Center" />
+        <!-- En flik per område. Varje flik får sin egen ViewModel som DataContext. -->
+        <TabControl Margin="12">
+            <TabItem Header="Kurser">
+                <views:CoursesView DataContext="{Binding Courses}" />
+            </TabItem>
+            <TabItem Header="Studenter">
+                <views:StudentsView DataContext="{Binding Students}" />
+            </TabItem>
+            <TabItem Header="Lärare">
+                <views:TeachersView DataContext="{Binding Teachers}" />
+            </TabItem>
+        </TabControl>
+    </DockPanel>
 
 </Window>

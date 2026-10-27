@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WestcoastEducation.Desktop.ViewModels"
+             xmlns:models="using:WestcoastEducation.Desktop.Models"
+             x:Class="WestcoastEducation.Desktop.Views.CoursesView"
+             x:DataType="vm:CoursesViewModel">
+
+    <Grid ColumnDefinitions="*,380" Margin="0,12,0,0">
+
+        <!-- Lista med kurser -->
+        <Border Grid.Column="0" Classes="card" Margin="0,0,12,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Classes="heading" Text="Kurser" />
+                <ListBox ItemsSource="{Binding Courses}" SelectedItem="{Binding SelectedCourse}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:Course">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold">
+                                    <Run Text="{Binding CourseNumber}" />
+                                    <Run Text=" - " />
+                                    <Run Text="{Binding Title}" />
+                                </TextBlock>
+                                <TextBlock Classes="muted">
+                                    <Run Text="{Binding StartDate, StringFormat='{}{0:yyyy-MM-dd}'}" />
+                                    <Run Text=" till " />
+                                    <Run Text="{Binding EndDate, StringFormat='{}{0:yyyy-MM-dd}'}" />
+                                    <Run Text=" | " />
+                                    <Run Text="{Binding Duration}" />
+                                    <Run Text=" veckor | " />
+                                    <Run Text="{Binding TypeOfCourse}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Formulär för att lägga till, uppdatera och radera -->
+        <Border Grid.Column="1" Classes="card">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Classes="heading" Text="Kursinformation" />
+
+                    <TextBlock Classes="label" Text="Kursnummer" />
+                    <TextBox Text="{Binding CourseNumber}" />
+
+                    <TextBlock Classes="label" Text="Titel" />
+                    <TextBox Text="{Binding Title}" />
+
+                    <TextBlock Classes="label" Text="Längd (veckor)" />
+                    <TextBox Text="{Binding Duration}" />
+
+                    <TextBlock Classes="label" Text="Startdatum" />
+                    <CalendarDatePicker SelectedDate="{Binding StartDate}" HorizontalAlignment="Stretch" />
+
+                    <TextBlock Classes="label" Text="Slutdatum" />
+                    <CalendarDatePicker SelectedDate="{Binding EndDate}" HorizontalAlignment="Stretch" />
+
+                    <TextBlock Classes="label" Text="Kurstyp" />
+                    <ComboBox ItemsSource="{Binding CourseTypes}" SelectedItem="{Binding SelectedCourseType}" HorizontalAlignment="Stretch" />
+
+                    <WrapPanel Margin="0,16,0,0">
+                        <Button Classes="primary" Content="Lägg till" Command="{Binding AddCourseCommand}" />
+                        <Button Classes="primary" Content="Uppdatera" Command="{Binding UpdateCourseCommand}" />
+                        <Button Classes="danger" Content="Radera" Command="{Binding DeleteCourseCommand}" />
+                        <Button Content="Rensa" Command="{Binding ClearFormCommand}" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="status" Text="{Binding StatusMessage}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

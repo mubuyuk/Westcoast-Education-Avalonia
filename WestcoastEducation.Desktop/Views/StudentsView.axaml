@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WestcoastEducation.Desktop.ViewModels"
+             xmlns:models="using:WestcoastEducation.Desktop.Models"
+             x:Class="WestcoastEducation.Desktop.Views.StudentsView"
+             x:DataType="vm:StudentsViewModel">
+
+    <Grid ColumnDefinitions="*,380" Margin="0,12,0,0">
+
+        <!-- Lista med studenter -->
+        <Border Grid.Column="0" Classes="card" Margin="0,0,12,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Classes="heading" Text="Studenter" />
+                <ListBox ItemsSource="{Binding Students}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:Student">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{Binding FullName}" />
+                                <TextBlock Classes="muted">
+                                    <Run Text="{Binding PersonalNumber}" />
+                                    <Run Text=" | " />
+                                    <Run Text="{Binding PhoneNumber}" />
+                                    <Run Text=" | " />
+                                    <Run Text="{Binding Address}" />
+                                    <Run Text=", " />
+                                    <Run Text="{Binding PostalCode}" />
+                                    <Run Text=" " />
+                                    <Run Text="{Binding City}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Formulär för att lägga till en student -->
+        <Border Grid.Column="1" Classes="card">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Classes="heading" Text="Ny student" />
+
+                    <TextBlock Classes="label" Text="Förnamn" />
+                    <TextBox Text="{Binding FirstName}" />
+
+                    <TextBlock Classes="label" Text="Efternamn" />
+                    <TextBox Text="{Binding LastName}" />
+
+                    <TextBlock Classes="label" Text="Personnummer" />
+                    <TextBox Text="{Binding PersonalNumber}" />
+
+                    <TextBlock Classes="label" Text="Telefonnummer" />
+                    <TextBox Text="{Binding PhoneNumber}" />
+
+                    <TextBlock Classes="label" Text="Adress" />
+                    <TextBox Text="{Binding Address}" />
+
+                    <TextBlock Classes="label" Text="Postnummer" />
+                    <TextBox Text="{Binding PostalCode}" />
+
+                    <TextBlock Classes="label" Text="Ort" />
+                    <TextBox Text="{Binding City}" />
+
+                    <WrapPanel Margin="0,16,0,0">
+                        <Button Classes="primary" Content="Lägg till" Command="{Binding AddStudentCommand}" />
+                        <Button Content="Rensa" Command="{Binding ClearFormCommand}" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="status" Text="{Binding StatusMessage}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

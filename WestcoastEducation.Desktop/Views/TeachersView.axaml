@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WestcoastEducation.Desktop.ViewModels"
+             xmlns:models="using:WestcoastEducation.Desktop.Models"
+             x:Class="WestcoastEducation.Desktop.Views.TeachersView"
+             x:DataType="vm:TeachersViewModel">
+
+    <Grid ColumnDefinitions="*,380" Margin="0,12,0,0">
+
+        <!-- Lista med lärare -->
+        <Border Grid.Column="0" Classes="card" Margin="0,0,12,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Classes="heading" Text="Lärare" />
+                <ListBox ItemsSource="{Binding Teachers}" SelectedItem="{Binding SelectedTeacher}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:Teacher">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold">
+                                    <Run Text="{Binding FullName}" />
+                                    <Run Text=" - " />
+                                    <Run Text="{Binding KnowledgeArea}" />
+                                </TextBlock>
+                                <TextBlock Classes="muted">
+                                    <Run Text="{Binding PersonalNumber}" />
+                                    <Run Text=" | " />
+                                    <Run Text="{Binding PhoneNumber}" />
+                                    <Run Text=" | " />
+                                    <Run Text="{Binding City}" />
+                                    <Run Text=" | Anställd " />
+                                    <Run Text="{Binding EmploymentDate, StringFormat='{}{0:yyyy-MM-dd}'}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Formulär för att lägga till och uppdatera lärare -->
+        <Border Grid.Column="1" Classes="card">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Classes="heading" Text="Lärarinformation" />
+
+                    <TextBlock Classes="label" Text="Förnamn" />
+                    <TextBox Text="{Binding FirstName}" />
+
+                    <TextBlock Classes="label" Text="Efternamn" />
+                    <TextBox Text="{Binding LastName}" />
+
+                    <TextBlock Classes="label" Text="Personnummer" />
+                    <TextBox Text="{Binding PersonalNumber}" />
+
+                    <TextBlock Classes="label" Text="Telefonnummer" />
+                    <TextBox Text="{Binding PhoneNumber}" />
+
+                    <TextBlock Classes="label" Text="Adress" />
+                    <TextBox Text="{Binding Address}" />
+
+                    <TextBlock Classes="label" Text="Postnummer" />
+                    <TextBox Text="{Binding PostalCode}" />
+
+                    <TextBlock Classes="label" Text="Ort" />
+                    <TextBox Text="{Binding City}" />
+
+                    <TextBlock Classes="label" Text="Kompetensområde" />
+                    <TextBox Text="{Binding KnowledgeArea}" />
+
+                    <TextBlock Classes="label" Text="Anställningsdatum" />
+                    <CalendarDatePicker SelectedDate="{Binding EmploymentDate}" HorizontalAlignment="Stretch" />
+
+                    <WrapPanel Margin="0,16,0,0">
+                        <Button Classes="primary" Content="Lägg till" Command="{Binding AddTeacherCommand}" />
+                        <Button Classes="primary" Content="Uppdatera" Command="{Binding UpdateTeacherCommand}" />
+                        <Button Content="Rensa" Command="{Binding ClearFormCommand}" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="status" Text="{Binding StatusMessage}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
