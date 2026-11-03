@@ -132,7 +132,7 @@ Inte rapporterat som manuellt testat: byte av färg i `AppResources.axaml` (dyna
 
 ## 9. Git
 
-- Branch: `main`. Ingen remote konfigurerad – **inget har pushats**. Push kräver användarens uttryckliga godkännande.
+- Branch: `main`, spårar `origin/main`. Remote `origin`: `https://github.com/mubuyuk/Westcoast-Education-Avalonia.git`. Push kräver användarens uttryckliga godkännande.
 - Commits (äldst först):
   - `6b6db55` Skapa Avalonia MVVM-projekt (net10.0, Avalonia 12.1.4)
   - `8b7f1c9` Lägg till modeller, RestDB-services, ViewModels, views och dynamiska resurser
