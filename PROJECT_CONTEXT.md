@@ -1,6 +1,6 @@
 # Projektkontext – Westcoast Education steg 2
 
-Sammanställning för att kunna återuppta arbetet i nya sessioner. Senast uppdaterad: 2026-10-27.
+Sammanställning för att kunna återuppta arbetet i nya sessioner. Senast uppdaterad: 2026-11-03.
 Instruktioner och arbetsprinciper finns i `Claude.md`; hur man startar appen och en arkitekturöversikt finns i `README.md`.
 
 ## 1. Syfte
@@ -24,7 +24,7 @@ View (.axaml)  --binding/commands-->  ViewModel  --interface-->  Service  --Http
 - **Dependency Injection** (Microsoft.Extensions.DependencyInjection) konfigureras i `App.axaml.cs` → `ConfigureServices`. Allt registreras som singleton: en gemensam `HttpClient` (BaseAddress + header `x-apikey`), tre services och fyra ViewModels.
 - **Services** är det enda stället som använder `HttpClient`. ViewModels känner bara till interfacen.
 - **RestDB.io:** `https://westcoasteducation-a467.restdb.io/rest/`, collections `courses`, `students`, `teachers`. JSON i camelCase (System.Text.Json web defaults). `_id` mappas till `Id` och skickas inte vid POST (`JsonIgnore WhenWritingNull`). `CourseType` sparas som text.
-- Vid start: `App` läser `RestDbSettings`, bygger DI-containern, skapar `MainWindow` och anropar `MainViewModel.LoadAllAsync()`. Saknas/ofullständig `appsettings.json` visas ett enkelt felfönster.
+- Vid start: `App` läser `RestDbSettings`, bygger DI-containern, skapar `MainWindow` och anropar `MainViewModel.LoadAllAsync()`. Saknas `appsettings.json`, eller innehåller den ogiltig JSON, saknar avsnittet `RestDb`, har tom `BaseUrl`/`ApiKey` eller en ogiltig `BaseUrl`, visas ett enkelt felfönster med ett svenskt meddelande. Saknas avslutande `/` i `BaseUrl` läggs det till automatiskt.
 
 ## 3. Projektstruktur
 
@@ -47,7 +47,7 @@ WestcoastEducation-Avalonia/
     └── Styles/AppResources.axaml   alla färger som SolidColorBrush, används via {DynamicResource}
 ```
 
-Varje flik: lista (ListBox) till vänster, formulär till höger. Formulärfälten är egna egenskaper i ViewModel; att välja en post i listan fyller formuläret (`OnSelectedXxxChanged`). Validering (obligatoriska fält, heltal, datumordning, unikt kursnummer/personnummer) görs i ViewModel och visas i `StatusMessage`.
+Varje flik: lista (ListBox) till vänster, formulär till höger. Formulärfälten är egna egenskaper i ViewModel; att välja en post i listan fyller formuläret (`OnSelectedXxxChanged`). Validering (obligatoriska fält, heltal, datumordning, unikt kursnummer/personnummer) görs i ViewModel och visas i `StatusMessage`. `CreateCourseFromForm`/`CreateTeacherFromForm` tar emot den post som uppdateras (eller `null` vid Lägg till), så att bara Uppdatera undantar den egna posten från dubblettkontrollen. Update-kommandona sparar den valda posten i en lokal variabel före `await`.
 
 ## 4. Viktiga beslut
 
@@ -81,6 +81,22 @@ Utfördes med ett tillfälligt konsolprogram i Claudes scratchpad (inte i repot)
 - **Bygg:** `dotnet build` 0 fel, 0 varningar.
 - **Start:** appen startar med huvudfönstret "Westcoast Education - Administration" när `appsettings.json` finns, och med fönstret "Konfigurationsfel" när den saknas (kontrollerat via fönstertitel, inte visuellt).
 
+## 6b. Rättningar efter kodgranskning (2026-11-03)
+
+Ändrade filer: `CoursesViewModel.cs`, `TeachersViewModel.cs`, `RestDbSettings.cs`.
+
+1. **Dubblettkontroll:** "Lägg till" kunde tidigare skapa en dubblett av kursnummer/personnummer om en befintlig post var markerad (den markerade posten undantogs alltid). Nu undantas en post bara vid Uppdatera.
+2. **Felhantering i `RestDbSettings`:** ogiltig JSON, saknat `RestDb`-avsnitt och ogiltig `BaseUrl` (även andra scheman än http/https) ger nu `InvalidOperationException` med svenskt meddelande, som visas i felfönstret i stället för att appen kraschar.
+3. **Race condition vid Uppdatera:** den valda kursen/läraren sparas innan PUT-anropet. Om användaren byter markering under anropet uppdateras ändå rätt post i listan, och den nya markeringen behålls.
+4. **`BaseUrl` utan avslutande `/`** kompletteras automatiskt, så att `.../rest` + `courses` blir `.../rest/courses`.
+
+Tester utförda av Claude med ett tillfälligt konsolprogram i scratchpad (raderat efteråt), **33/33 godkända**:
+- **ViewModels med fejkade services (18):** Lägg till med markerad kurs/lärare och samma nummer nekas; Lägg till med annans nummer nekas; Lägg till med nytt nummer fungerar; Uppdatera med oförändrat nummer fungerar (kurs och lärarens kompetensområde); Uppdatera till en annan posts nummer nekas; race-scenario (markeringen byts medan PUT pågår) uppdaterar rätt post och lämnar den andra orörd; Radera kurs fungerar.
+- **Live mot RestDB (6):** kurs Lägg till → dubblettförsök med markerad kurs nekas → Uppdatera → kontroll i RestDB (exakt en post, ny titel) → Radera; lärare Lägg till → dubblettförsök nekas → Uppdatera kompetensområde → kontroll i RestDB → städning via HTTP DELETE. Testposterna är borttagna (kontrollerat).
+- **`RestDbSettings` (9):** URL utan `/` kompletteras, URL med `/` oförändrad, ogiltig JSON, saknat `RestDb`, ogiltig URL, ftp-URL, tom ApiKey, saknad fil, samt att relativ adress blir `.../rest/courses`. Testfilerna skrevs i testprogrammets egen bin-mapp, inte i appens.
+- **Bygg:** `dotnet restore` + `dotnet build` 0 fel, 0 varningar. **Start:** appen startar med huvudfönstret (kontrollerat via fönstertitel).
+- Inte testat: felfönstret visuellt med de nya felmeddelandena, och race-scenariot i det riktiga GUI:t (bara på ViewModel-nivå).
+
 ## 7. Manuella GUI-tester (rapporterade av användaren)
 
 Användaren har rapporterat att följande har testats i GUI:t och fungerar:
@@ -111,7 +127,8 @@ Inte rapporterat som manuellt testat: byte av färg i `AppResources.axaml` (dyna
   - `6b6db55` Skapa Avalonia MVVM-projekt (net10.0, Avalonia 12.1.4)
   - `8b7f1c9` Lägg till modeller, RestDB-services, ViewModels, views och dynamiska resurser
   - `b063bff` Lägg till README med instruktioner och arkitekturbeskrivning
-  - följt av commiten som lade till denna fil (se `git log`).
+  - `8503ec6` Lägg till PROJECT_CONTEXT.md och hänvisning i Claude.md
+  - följt av commiten med rättningarna efter kodgranskningen (se `git log`).
 
 ## 10. Säkerhet
 

@@ -69,7 +69,8 @@ public partial class CoursesViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddCourseAsync()
     {
-        Course? course = CreateCourseFromForm();
+        // null: en ny kurs ska jämföras mot alla befintliga kurser, även den som är markerad.
+        Course? course = CreateCourseFromForm(null);
         if (course is null)
         {
             return;
@@ -91,22 +92,36 @@ public partial class CoursesViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(IsCourseSelected))]
     private async Task UpdateCourseAsync()
     {
-        Course? course = CreateCourseFromForm();
-        if (course is null || SelectedCourse is null)
+        // Spara den valda kursen innan anropet, ifall användaren hinner välja en annan kurs under tiden.
+        Course? originalCourse = SelectedCourse;
+        if (originalCourse is null)
         {
             return;
         }
 
-        course.Id = SelectedCourse.Id;
+        Course? course = CreateCourseFromForm(originalCourse);
+        if (course is null)
+        {
+            return;
+        }
+
+        course.Id = originalCourse.Id;
 
         try
         {
             await _courseService.UpdateCourseAsync(course);
 
             // Byt ut kursen i listan så att den nya informationen visas.
-            int index = Courses.IndexOf(SelectedCourse);
-            Courses[index] = course;
-            SelectedCourse = course;
+            int index = Courses.IndexOf(originalCourse);
+            if (index >= 0)
+            {
+                Courses[index] = course;
+            }
+            // Markera den uppdaterade kursen, om inte användaren redan har valt en annan kurs.
+            if (SelectedCourse is null || SelectedCourse == originalCourse)
+            {
+                SelectedCourse = course;
+            }
             StatusMessage = $"Kursen \"{course.Title}\" har uppdaterats.";
         }
         catch (Exception ex)
@@ -168,7 +183,8 @@ public partial class CoursesViewModel : ViewModelBase
     }
 
     // Kontrollerar formuläret och skapar en kurs. Returnerar null och visar ett meddelande om något är fel.
-    private Course? CreateCourseFromForm()
+    // courseBeingUpdated är kursen som uppdateras (null vid Lägg till) och undantas från dubblettkontrollen.
+    private Course? CreateCourseFromForm(Course? courseBeingUpdated)
     {
         if (!int.TryParse(CourseNumber, out int courseNumber) || courseNumber <= 0)
         {
@@ -201,7 +217,7 @@ public partial class CoursesViewModel : ViewModelBase
         }
 
         // Samma kontroll som i konsolapplikationen: kursnumret måste vara unikt.
-        if (Courses.Any(c => c.CourseNumber == courseNumber && c != SelectedCourse))
+        if (Courses.Any(c => c.CourseNumber == courseNumber && c != courseBeingUpdated))
         {
             StatusMessage = $"Kurs med kursnummer {courseNumber} finns redan.";
             return null;

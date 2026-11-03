@@ -75,7 +75,8 @@ public partial class TeachersViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddTeacherAsync()
     {
-        Teacher? teacher = CreateTeacherFromForm();
+        // null: en ny lärare ska jämföras mot alla befintliga lärare, även den som är markerad.
+        Teacher? teacher = CreateTeacherFromForm(null);
         if (teacher is null)
         {
             return;
@@ -97,22 +98,36 @@ public partial class TeachersViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(IsTeacherSelected))]
     private async Task UpdateTeacherAsync()
     {
-        Teacher? teacher = CreateTeacherFromForm();
-        if (teacher is null || SelectedTeacher is null)
+        // Spara den valda läraren innan anropet, ifall användaren hinner välja en annan lärare under tiden.
+        Teacher? originalTeacher = SelectedTeacher;
+        if (originalTeacher is null)
         {
             return;
         }
 
-        teacher.Id = SelectedTeacher.Id;
+        Teacher? teacher = CreateTeacherFromForm(originalTeacher);
+        if (teacher is null)
+        {
+            return;
+        }
+
+        teacher.Id = originalTeacher.Id;
 
         try
         {
             await _teacherService.UpdateTeacherAsync(teacher);
 
             // Byt ut läraren i listan så att den nya informationen visas.
-            int index = Teachers.IndexOf(SelectedTeacher);
-            Teachers[index] = teacher;
-            SelectedTeacher = teacher;
+            int index = Teachers.IndexOf(originalTeacher);
+            if (index >= 0)
+            {
+                Teachers[index] = teacher;
+            }
+            // Markera den uppdaterade läraren, om inte användaren redan har valt en annan lärare.
+            if (SelectedTeacher is null || SelectedTeacher == originalTeacher)
+            {
+                SelectedTeacher = teacher;
+            }
             StatusMessage = $"Läraren {teacher.FullName} har uppdaterats.";
         }
         catch (Exception ex)
@@ -157,7 +172,8 @@ public partial class TeachersViewModel : ViewModelBase
     }
 
     // Kontrollerar formuläret och skapar en lärare. Returnerar null och visar ett meddelande om något är fel.
-    private Teacher? CreateTeacherFromForm()
+    // teacherBeingUpdated är läraren som uppdateras (null vid Lägg till) och undantas från dubblettkontrollen.
+    private Teacher? CreateTeacherFromForm(Teacher? teacherBeingUpdated)
     {
         if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(PersonalNumber))
         {
@@ -177,7 +193,7 @@ public partial class TeachersViewModel : ViewModelBase
             return null;
         }
 
-        if (Teachers.Any(t => t.PersonalNumber == PersonalNumber.Trim() && t != SelectedTeacher))
+        if (Teachers.Any(t => t.PersonalNumber == PersonalNumber.Trim() && t != teacherBeingUpdated))
         {
             StatusMessage = $"Lärare med personnummer {PersonalNumber} finns redan.";
             return null;

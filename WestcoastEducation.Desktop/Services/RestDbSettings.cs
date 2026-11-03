@@ -21,12 +21,37 @@ public class RestDbSettings
                 "Filen appsettings.json saknas. Kopiera appsettings.example.json till appsettings.json och fyll i din RestDB API-nyckel.");
         }
 
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
-        RestDbSettings? settings = document.RootElement.GetProperty("RestDb").Deserialize<RestDbSettings>();
+        RestDbSettings? settings;
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+            if (!document.RootElement.TryGetProperty("RestDb", out JsonElement restDbSection))
+            {
+                throw new InvalidOperationException("Avsnittet \"RestDb\" saknas i appsettings.json.");
+            }
+
+            settings = restDbSection.Deserialize<RestDbSettings>();
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException("Filen appsettings.json innehåller ogiltig JSON. Jämför med appsettings.example.json.");
+        }
 
         if (settings is null || string.IsNullOrWhiteSpace(settings.BaseUrl) || string.IsNullOrWhiteSpace(settings.ApiKey))
         {
             throw new InvalidOperationException("BaseUrl eller ApiKey saknas under \"RestDb\" i appsettings.json.");
+        }
+
+        // HttpClient kräver ett avslutande "/" för att "courses" ska läggas efter ".../rest/".
+        settings.BaseUrl = settings.BaseUrl.Trim();
+        if (!settings.BaseUrl.EndsWith('/'))
+        {
+            settings.BaseUrl += "/";
+        }
+
+        if (!Uri.TryCreate(settings.BaseUrl, UriKind.Absolute, out Uri? uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException($"BaseUrl i appsettings.json är inte en giltig webbadress: \"{settings.BaseUrl}\".");
         }
 
         return settings;
