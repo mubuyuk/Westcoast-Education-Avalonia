@@ -1,74 +1,71 @@
 # Westcoast Education – Administration (Avalonia)
 
-En desktop-applikation byggd med Avalonia UI där Westcoast Educations utbildningsledare och administratörer kan administrera kurser, studenter och lärare. Applikationen bygger vidare på konsolprogrammet från inlämningsuppgift 1 och sparar all data i RestDB.io.
+En desktop-applikation i **C#/.NET 10** och **Avalonia UI** för att administrera kurser, studenter och lärare. Projektet bygger vidare på konsolapplikationen från inlämningsuppgift 1 och lagrar data i **RestDB.io**.
 
 ## Funktioner
 
 | Område | Funktioner |
 |---|---|
-| Kurser | Lista, lägga till, uppdatera och radera kurser |
-| Studenter | Lista och lägga till studenter |
-| Lärare | Lista, lägga till och uppdatera lärare, inklusive lärarens kompetensområde |
+| **Kurser** | Visa, lägga till, uppdatera och radera kurser |
+| **Studenter** | Visa och lägga till studenter |
+| **Lärare** | Visa, lägga till och uppdatera lärare och deras kompetensområden |
+
+Kursformuläret kontrollerar bland annat obligatoriska fält, giltiga datum och unika kursnummer.
 
 ## Teknik
 
-- **.NET 10** och **Avalonia 12**
-- **MVVM** med CommunityToolkit.Mvvm (`[ObservableProperty]` och `[RelayCommand]`)
-- **Dependency Injection** med Microsoft.Extensions.DependencyInjection
-- **RestDB.io** som databas, via `HttpClient`
+- **.NET 10** och **Avalonia 12** – desktop-applikation
+- **MVVM** med `CommunityToolkit.Mvvm` – View, ViewModel och data binding
+- **Interfaces och Dependency Injection** – löst kopplade komponenter
+- **HttpClient** – kommunikation med RestDB:s HTTP-API
+- **RestDB.io** – datalagring
 
 ## Kom igång
 
 1. Kopiera `WestcoastEducation.Desktop/appsettings.example.json` till `WestcoastEducation.Desktop/appsettings.json`.
-2. Ersätt `DIN-API-NYCKEL-HAR` med din RestDB API-nyckel.
-3. Starta applikationen:
+2. Ange din RestDB API-nyckel i `appsettings.json`.
+3. Se till att databasen har collections `courses`, `students` och `teachers`.
+4. Starta från projektets rotmapp:
 
-```
-dotnet run --project WestcoastEducation.Desktop
-```
+   ```bash
+   dotnet run --project WestcoastEducation.Desktop
+   ```
 
-`appsettings.json` finns med i `.gitignore` och versionshanteras aldrig, så API-nyckeln hamnar inte på GitHub. Om filen saknas visar applikationen ett meddelande om det i stället för att starta.
-
-RestDB-databasen behöver tre collections: `courses`, `students` och `teachers`. Fälten behöver inte definieras i förväg, RestDB sparar den JSON som skickas.
+`appsettings.json` är undantagen från versionshantering via `.gitignore`. Lägg aldrig in riktiga API-nycklar i Git.
 
 ## Projektstruktur
 
 | Mapp / fil | Ansvar |
 |---|---|
-| `Models` | Klasserna `Person`, `Student`, `Teacher`, `Course` och enumen `CourseType`. Återanvända från konsolprogrammet, men förenklade (inga konstruktorer med parametrar) och med ett `Id` som motsvarar RestDB:s `_id`. |
-| `Services` | All HTTP-kommunikation med RestDB. Varje område har ett interface (`ICourseService`, `IStudentService`, `ITeacherService`) och en implementation (`CourseService`, `StudentService`, `TeacherService`). `RestDbSettings` läser `appsettings.json`. |
-| `ViewModels` | En ViewModel per flik (`CoursesViewModel`, `StudentsViewModel`, `TeachersViewModel`) samt `MainViewModel` som håller ihop dem. Här finns formulärdata, kommandon och enkel validering. |
-| `Views` | XAML-filer (`.axaml`). `MainWindow` har en flik per område och varje flik är en egen `UserControl`. Views innehåller bara bindningar, ingen logik i code-behind. |
-| `Styles/AppResources.axaml` | Applikationens färger. De används via `{DynamicResource ...}` i views och styles. |
-| `App.axaml` | Gemensamma styles samt inkludering av färgresurserna. |
-| `App.axaml.cs` | Dependency Injection: här registreras `HttpClient`, services och ViewModels. |
+| `Models/` | Datamodeller för kurser, studenter och lärare |
+| `Views/` | Användargränssnitt i Avalonia XAML (`.axaml`) |
+| `ViewModels/` | Formulärdata, validering och commands |
+| `Services/` | Interfaces, HTTP-kommunikation och RestDB-konfiguration |
+| `Styles/AppResources.axaml` | Gemensamma färgresurser |
+| `App.axaml.cs` | Registrering av services och ViewModels med DI |
+| `Program.cs` | Startar Avalonia |
 
-## Hur delarna hänger ihop
+## Så fungerar applikationen
 
-```
-View (XAML)  --binding-->  ViewModel  --interface-->  Service  --HttpClient-->  RestDB.io
-```
+När användaren klickar på **Lägg till** i kursvyn går informationen genom följande delar:
 
-1. Användaren fyller i formuläret i en **View**. Fälten är bundna till egenskaper i **ViewModel**.
-2. Knappen är bunden till ett **command** i ViewModel, till exempel `AddCourseCommand`.
-3. ViewModel kontrollerar formuläret och anropar sin service via **interfacet**, till exempel `ICourseService`.
-4. **Servicen** skickar ett HTTP-anrop (GET, POST, PUT eller DELETE) till RestDB.
-5. ViewModel uppdaterar sin `ObservableCollection`, och listan i View uppdateras automatiskt.
-
-ViewModels känner bara till interfacen. Vilken implementation de får bestäms på ett ställe, i `App.axaml.cs`, med Dependency Injection.
-
-## Dynamiska resurser
-
-Alla färger definieras en gång i `Styles/AppResources.axaml`, till exempel:
-
-```xml
-<SolidColorBrush x:Key="PrimaryBrush" Color="#1F4E79" />
+```text
+CoursesView.axaml
+       │  Data Binding / AddCourseCommand
+       ▼
+CoursesViewModel
+       │  ICourseService
+       ▼
+CourseService
+       │  HttpClient / HTTP POST
+       ▼
+RestDB.io
 ```
 
-och används med `DynamicResource`:
+ViewModel arbetar mot interfacet `ICourseService` i stället för att vara direkt beroende av `CourseService`. Med **Dependency Injection** bestämmer vi vilken implementation som ska användas.
 
-```xml
-<Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
-```
+**[Läs den pedagogiska genomgången av MVVM, Interfaces, Dependency Injection och Loose Coupling →](docs/architecture.md)**
 
-Om en färg ändras i resursfilen ändras den i hela applikationen.
+## Utseende och resurser
+
+Färger definieras centralt i `Styles/AppResources.axaml` och används med `DynamicResource`. Det gör att samma färg kan ändras på ett ställe.
