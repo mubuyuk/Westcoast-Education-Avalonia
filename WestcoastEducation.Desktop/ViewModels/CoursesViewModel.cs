@@ -9,19 +9,24 @@ using WestcoastEducation.Desktop.Services;
 
 namespace WestcoastEducation.Desktop.ViewModels;
 
+// MVVM: Model = data, View = visning, ViewModel = formulärdata, validering och anrop till servicen.
+// partial krävs eftersom CommunityToolkit.Mvvm genererar resten av klassen.
 public partial class CoursesViewModel : ViewModelBase
 {
     private readonly ICourseService _courseService;
 
+    // Beror på interfacet, inte på CourseService; DI väljer implementationen.
     public CoursesViewModel(ICourseService courseService)
     {
         _courseService = courseService;
     }
 
+    // ObservableCollection meddelar Viewn när poster läggs till eller tas bort, så listan uppdateras automatiskt.
     public ObservableCollection<Course> Courses { get; } = new();
 
     public CourseType[] CourseTypes { get; } = Enum.GetValues<CourseType>();
 
+    // [ObservableProperty] genererar propertyn och meddelar Viewn när värdet ändras.
     // När en kurs väljs i listan fylls formuläret och knapparna Uppdatera/Radera aktiveras.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(UpdateCourseCommand))]
@@ -66,6 +71,7 @@ public partial class CoursesViewModel : ViewModelBase
         }
     }
 
+    // [RelayCommand] genererar AddCourseCommand, som knappen i Viewn binder till.
     [RelayCommand]
     private async Task AddCourseAsync()
     {
@@ -105,6 +111,7 @@ public partial class CoursesViewModel : ViewModelBase
             return;
         }
 
+        // Samma _id som originalet, så att RestDB vet vilken post som ska uppdateras.
         course.Id = originalCourse.Id;
 
         try
@@ -167,6 +174,7 @@ public partial class CoursesViewModel : ViewModelBase
 
     private bool IsCourseSelected() => SelectedCourse is not null;
 
+    // Anropas automatiskt av den genererade koden när SelectedCourse ändras.
     partial void OnSelectedCourseChanged(Course? value)
     {
         if (value is null)

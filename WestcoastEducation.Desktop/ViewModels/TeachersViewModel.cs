@@ -9,6 +9,7 @@ using WestcoastEducation.Desktop.Services;
 
 namespace WestcoastEducation.Desktop.ViewModels;
 
+// Uppdatera används både för lärarens uppgifter och för att hantera kompetensområdet.
 public partial class TeachersViewModel : ViewModelBase
 {
     private readonly ITeacherService _teacherService;

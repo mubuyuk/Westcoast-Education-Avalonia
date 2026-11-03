@@ -97,6 +97,16 @@ Tester utförda av Claude med ett tillfälligt konsolprogram i scratchpad (rader
 - **Bygg:** `dotnet restore` + `dotnet build` 0 fel, 0 varningar. **Start:** appen startar med huvudfönstret (kontrollerat via fönstertitel).
 - Inte testat: felfönstret visuellt med de nya felmeddelandena, och race-scenariot i det riktiga GUI:t (bara på ViewModel-nivå).
 
+## 6c. Pedagogiska kommentarer (2026-11-03)
+
+Enbart kommentarer tillagda (ingen kodändring) som korta minnesanteckningar. Användaren tyckte att första versionen var för detaljerad, så de förenklades: princip "kommentera varför, inte vad", oftast en mening, varje begrepp förklaras bara en gång.
+- `App.axaml.cs`: DI, `AddSingleton`, interface → implementation, gemensam `HttpClient`, `DataContext`.
+- `RestDbSettings.cs`: deserialisering, varför konfigurationen valideras vid start.
+- `ICourseService.cs` / `CourseService.cs`: interface vs implementation, injicerad `HttpClient`, `async`/`await`, JSON-serialisering, `EnsureSuccessStatusCode`.
+- `CoursesViewModel.cs`: MVVM, `partial`, `ObservableCollection`, `[ObservableProperty]`, `[RelayCommand]`, `On...Changed`.
+- Enstaka rader i `ViewModelBase`, `MainViewModel`, `TeachersViewModel`, `Person`, `CoursesView.axaml(.cs)`.
+Verifierat: `git diff` innehåller bara kommentarsrader; `dotnet build` 0 fel, 0 varningar.
+
 ## 7. Manuella GUI-tester (rapporterade av användaren)
 
 Användaren har rapporterat att följande har testats i GUI:t och fungerar:

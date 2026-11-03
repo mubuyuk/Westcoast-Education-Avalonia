@@ -8,11 +8,13 @@ namespace WestcoastEducation.Desktop.Services;
 // Filen innehåller API-nyckeln och versionshanteras därför inte (se .gitignore).
 public class RestDbSettings
 {
+    // Namnen måste matcha nycklarna i appsettings.json för att deserialiseringen ska fungera.
     public string BaseUrl { get; set; } = string.Empty;
     public string ApiKey { get; set; } = string.Empty;
 
     public static RestDbSettings Load()
     {
+        // appsettings.json kopieras till build-mappen vid build (CopyToOutputDirectory i .csproj).
         string path = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
 
         if (!File.Exists(path))
@@ -30,13 +32,16 @@ public class RestDbSettings
                 throw new InvalidOperationException("Avsnittet \"RestDb\" saknas i appsettings.json.");
             }
 
+            // Deserialisering: JSON-avsnittet "RestDb" görs om till ett RestDbSettings-objekt.
             settings = restDbSection.Deserialize<RestDbSettings>();
         }
         catch (JsonException)
         {
+            // Byter det tekniska JSON-felet mot ett begripligt meddelande till felfönstret.
             throw new InvalidOperationException("Filen appsettings.json innehåller ogiltig JSON. Jämför med appsettings.example.json.");
         }
 
+        // Kontrolleras vid start, annars märks felet först senare som ett otydligt HTTP-fel.
         if (settings is null || string.IsNullOrWhiteSpace(settings.BaseUrl) || string.IsNullOrWhiteSpace(settings.ApiKey))
         {
             throw new InvalidOperationException("BaseUrl eller ApiKey saknas under \"RestDb\" i appsettings.json.");

@@ -17,6 +17,7 @@ public class MainViewModel : ViewModelBase
     public TeachersViewModel Teachers { get; }
 
     // Hämtar all data från RestDB när applikationen startar.
+    // Task.WhenAll kör hämtningarna samtidigt i stället för en i taget.
     public async Task LoadAllAsync()
     {
         await Task.WhenAll(
